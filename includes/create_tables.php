@@ -6,6 +6,7 @@ $sql = "CREATE TABLE IF NOT EXISTS appointments (
     patient_id INT NOT NULL,
     doctor_id INT NOT NULL,
     appointment_date DATE NOT NULL,
+    appointment_time TIME NOT NULL,
     message TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (patient_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -14,4 +15,3 @@ $sql = "CREATE TABLE IF NOT EXISTS appointments (
 
 $pdo->exec($sql);
 echo "Appointments table created successfully.";
-?>
