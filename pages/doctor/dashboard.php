@@ -10,9 +10,10 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'doctor') {
 
 // Fetch appointments
 $stmt = $pdo->prepare("SELECT a.*, u.full_name AS patient_name 
-                       FROM appointments a 
-                       JOIN users u ON a.patient_id = u.id 
-                       WHERE a.doctor_id = ?");
+FROM appointments a 
+JOIN users u ON a.patient_id = u.id 
+WHERE a.doctor_id = ?");
+
 $stmt->execute([$_SESSION['user_id']]);
 $appointments = $stmt->fetchAll();
 ?>
@@ -45,10 +46,20 @@ $appointments = $stmt->fetchAll();
                                     <td><?= $a['appointment_date'] ?></td>
                                     <td><?= htmlspecialchars($a['message']) ?></td>
                                     <td>
-                                        <form action="/doctor/cancel-appointment" method="POST" onsubmit="return confirm('Are you sure?');">
-                                            <input type="hidden" name="appointment_id" value="<?= $a['id'] ?>">
-                                            <button type="submit" class="btn btn-sm btn-danger">Cancel</button>
-                                        </form>
+                                        <?php if ($a['status'] === 'pending'): ?>
+                                            <form action="/doctor/approve-appointment" method="POST" style="display:inline;">
+                                                <input type="hidden" name="appointment_id" value="<?= $a['id'] ?>">
+                                                <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                                            </form>
+                                            <form action="/doctor/cancel-appointment" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure?');">
+                                                <input type="hidden" name="appointment_id" value="<?= $a['id'] ?>">
+                                                <button type="submit" class="btn btn-sm btn-danger">Cancel</button>
+                                            </form>
+                                        <?php elseif ($a['status'] === 'approved'): ?>
+                                            <span class="badge bg-success">Approved</span>
+                                        <?php elseif ($a['status'] === 'cancelled'): ?>
+                                            <span class="badge bg-danger">Cancelled</span>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
