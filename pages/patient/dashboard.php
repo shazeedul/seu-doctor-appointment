@@ -13,12 +13,12 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'patient') {
 $stmt = $pdo->prepare("SELECT a.*, u.full_name AS doctor_name 
                        FROM appointments a 
                        JOIN users u ON a.doctor_id = u.id 
-                       WHERE a.patient_id = ?");
+                       WHERE a.patient_id = ?
+                       ORDER BY a.appointment_date DESC");
 $stmt->execute([$_SESSION['user_id']]);
 $appointments = $stmt->fetchAll();
 ?>
 <section class="py-50 bg-light">
-
     <div class="container mt-5">
         <div class="card shadow">
             <div class="card-header bg-success text-white">
@@ -36,6 +36,7 @@ $appointments = $stmt->fetchAll();
                             <th>Doctor</th>
                             <th>Date</th>
                             <th>Message</th>
+                            <th>Status</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -48,16 +49,29 @@ $appointments = $stmt->fetchAll();
                                     <td><?= $a['appointment_date'] ?></td>
                                     <td><?= htmlspecialchars($a['message']) ?></td>
                                     <td>
-                                        <form action="/patient/cancel-appointment" method="POST" onsubmit="return confirm('Are you sure?');">
-                                            <input type="hidden" name="appointment_id" value="<?= $a['id'] ?>">
-                                            <button type="submit" class="btn btn-sm btn-danger">Cancel</button>
-                                        </form>
+                                        <?php if ($a['status'] === 'approved'): ?>
+                                            <span class="badge bg-success">Approved</span>
+                                        <?php elseif ($a['status'] === 'cancelled'): ?>
+                                            <span class="badge bg-danger">Cancelled</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-warning text-dark">Pending</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if ($a['status'] !== 'cancelled'): ?>
+                                            <form action="/patient/cancel-appointment" method="POST" onsubmit="return confirm('Are you sure you want to cancel this appointment?');">
+                                                <input type="hidden" name="appointment_id" value="<?= $a['id'] ?>">
+                                                <button type="submit" class="btn btn-sm btn-danger">Cancel</button>
+                                            </form>
+                                        <?php else: ?>
+                                            <span class="text-muted">N/A</span>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="5" class="text-center">No appointments found.</td>
+                                <td colspan="6" class="text-center">No appointments found.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -67,6 +81,6 @@ $appointments = $stmt->fetchAll();
     </div>
 </section>
 <?php
-$content = ob_get_clean(); // Get the buffered content
-include __DIR__ . '/../../layout.php'; // Render with layout
+$content = ob_get_clean();
+include __DIR__ . '/../../layout.php';
 ?>

@@ -67,6 +67,10 @@ switch ($request) {
         require __DIR__ . $viewDir . 'doctor/dashboard.php';
         break;
 
+    case '/doctor/approve-appointment':
+        require __DIR__ . $viewDir . 'doctor/approve_appointment.php';
+        break;
+
     case '/doctor/cancel-appointment':
         require __DIR__ . $viewDir . 'appointment/cancel_appointment.php';
         break;
